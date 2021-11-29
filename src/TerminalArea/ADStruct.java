@@ -5,7 +5,15 @@ public class ADStruct {
     double ADLon;
     double ADLat;
     double ADElevation;
-    int RWYNum;
+    String RWYCode;
+
+    public String getRWYCode() {
+        return RWYCode;
+    }
+
+    public void setRWYCode(String RWYCode) {
+        this.RWYCode = RWYCode;
+    }
 
     public String getICAOCodeID() {
         return ICAOCodeID;
@@ -37,13 +45,5 @@ public class ADStruct {
 
     public void setADElevation(double ADElevation) {
         this.ADElevation = ADElevation;
-    }
-
-    public int getRWYNum() {
-        return RWYNum;
-    }
-
-    public void setRWYNum(int RWYNum) {
-        this.RWYNum = RWYNum;
     }
 }
