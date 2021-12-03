@@ -35,7 +35,7 @@ public class SendAPL {
 
             @Override
             public String getFederationName() {
-                return "ATOS102702";
+                return "ATOS110802";
             }
 
             @Override
@@ -125,8 +125,8 @@ public class SendAPL {
         }
     }
 
-    public static void main(String[] args) throws HlaRtiException, HlaInvalidLogicalTimeException, HlaFomException, HlaNotConnectedException, HlaConnectException, HlaInternalException, SocketException, HlaIllegalInstanceNameException, HlaInstanceNameInUseException, HlaAttributeNotOwnedException {
+    public static void main(String[] args) throws HlaRtiException, HlaInvalidLogicalTimeException, HlaFomException, HlaNotConnectedException, HlaConnectException, HlaInternalException, SocketException, HlaIllegalInstanceNameException, HlaInstanceNameInUseException, HlaAttributeNotOwnedException, InterruptedException {
         new SendAPL().simulate();
-
+        Thread.sleep(500);
     }
 }

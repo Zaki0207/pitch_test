@@ -11,8 +11,11 @@ public class FLPStruct {
     String ACType;
     short CruAlt;
     short CruIAS;
+    String type;
     HLARWYSturct RWYInfo;
     HLARWYSturct ArrRWYInfo;
+    String Release_std_Time;
+    int time_interval;
 
     public HLARWYSturct getArrRWYInfo() {
         return ArrRWYInfo;

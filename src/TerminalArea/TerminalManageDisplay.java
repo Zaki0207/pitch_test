@@ -3,6 +3,8 @@ package TerminalArea;
 import devstudio.generatedcode.datatypes.HLARWYSturct;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,11 +13,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
-public class TerminalManageDisplay {
+public class TerminalManageDisplay<model_ZGGG> {
     static String AD_filepath = "./resources/ADinfo.csv";
-    static String[] APLType = new String[]{"A320", "A350","B737","B747","ARJ21"};
+
+    static HashMap<String, ArrayList> APL_ref = new HashMap<>();
+    static HashMap<String, Integer> WTC_ref = new HashMap<>();
+
+    static String[] APLType = new String[]{"L", "M","H","S"};
     static String[] company = new String[]{"MU", "CGH","SC","MF","RA"};
     static ArrayList<ADStruct> AD_list;
     public static ArrayList<FLPStruct> FLP_list;
@@ -23,12 +31,63 @@ public class TerminalManageDisplay {
     static boolean ind_start = false;
     static int delta_time;
 
+    static ArrayList<ADStruct> AD_RWY_ZSSS = new ArrayList<>();
+    static ArrayList<ADStruct> AD_RWY_ZGGG = new ArrayList<>();
+    static ArrayList<ADStruct> AD_RWY_ZBAA = new ArrayList<>();
+
+    static Object[][] tableValues_ZSSS = new Object[5][4];
+    static Object[][] tableValues_ZGGG = new Object[5][4];
+    static Object[][] tableValues_ZBAA = new Object[5][4];
+    static String[] columnNames = {"航班号", "机型", "放行时间", "放行间隔"};
+
+
+
     public TerminalManageDisplay() throws IOException {
         AD_list = getADInfo();
+        APL_ref.put("L", new ArrayList<String>(){
+            {
+                add("ARJ21");
+            }
+        });
+        APL_ref.put("M", new ArrayList<String>(){
+            {
+                add("A320");
+                add("B737");
+            }
+        });
+        APL_ref.put("H", new ArrayList<String>(){
+            {
+                add("B777");
+                add("A350");
+            }
+        });
+        APL_ref.put("S", new ArrayList<String>(){
+            {
+                add("A380");
+                add("B747");
+            }
+        });
+        // 后机-前机
+        WTC_ref.put("S-S", new Integer(2));
+        WTC_ref.put("S-H", new Integer(2));
+        WTC_ref.put("S-M", new Integer(2));
+        WTC_ref.put("S-L", new Integer(2));
+        WTC_ref.put("H-S", new Integer(3));
+        WTC_ref.put("H-H", new Integer(2));
+        WTC_ref.put("H-M", new Integer(2));
+        WTC_ref.put("H-L", new Integer(2));
+        WTC_ref.put("M-S", new Integer(4));
+        WTC_ref.put("M-H", new Integer(3));
+        WTC_ref.put("M-M", new Integer(2));
+        WTC_ref.put("M-L", new Integer(2));
+        WTC_ref.put("L-S", new Integer(5));
+        WTC_ref.put("L-H", new Integer(4));
+        WTC_ref.put("L-M", new Integer(3));
+        WTC_ref.put("L-L", new Integer(2));
     }
 
-    private static int getRandomNumberInRange(int min, int max) {
-        if (min >= max) {
+    public static int getRandomNumberInRange(int min, int max) {
+        if (min > max) {
             throw new IllegalArgumentException("max must be greater than min");
         }
         Random r = new Random();
@@ -72,6 +131,15 @@ public class TerminalManageDisplay {
             temp_AD.ADElevation = elevation;
             temp_AD.RWYCode = RWYcode;
             AD_list.add(temp_AD);
+            if(id.equals("ZSSS")){
+                AD_RWY_ZSSS.add(temp_AD);
+            }
+            if(id.equals("ZGGG")){
+                AD_RWY_ZGGG.add(temp_AD);
+            }
+            if(id.equals("ZBAA")){
+                AD_RWY_ZBAA.add(temp_AD);
+            }
         }
         return AD_list;
     }
@@ -83,61 +151,201 @@ public class TerminalManageDisplay {
             FLPStruct FLP_temp = new FLPStruct();
             int ind_1 = getRandomNumberInRange(0, AD_list.size()-1);
             int ind_2 = getRandomNumberInRange(0, AD_list.size()-1);
-            double temp_dis = distance(AD_list.get(ind_1).ADLat, AD_list.get(ind_2).ADLat, AD_list.get(ind_1).ADLon, AD_list.get(ind_2).ADLon);
-            if (temp_dis >= 400){
-                FLP_temp.FltNo = company[getRandomNumberInRange(0,company.length - 1)] + getRandomNumberInRange(1000, 9999);
-                FLP_temp.DepAD = AD_list.get(ind_1).ICAOCodeID;
-                FLP_temp.ArrAD = AD_list.get(ind_2).ICAOCodeID;
-                FLP_temp.ACRigNum = "B" + (i + 1);
-                FLP_temp.ACType = APLType[getRandomNumberInRange(0, APLType.length - 1)];
-                FLP_temp.CruAlt = (short) (initial_Alt[getRandomNumberInRange(0, 1)] + 300 * getRandomNumberInRange(0, 4));
-                FLP_temp.CruIAS = (short) (400 + 10 * getRandomNumberInRange(0, 10));
-                FLP_temp.RWYInfo = HLARWYSturct.create(AD_list.get(ind_1).RWYCode, (short) (Short.parseShort(AD_list.get(ind_1).RWYCode) * 10),
-                        AD_list.get(ind_1).ADLon, AD_list.get(ind_1).ADLat, AD_list.get(ind_1).ADElevation);
-                FLP_temp.ArrRWYInfo = HLARWYSturct.create(AD_list.get(ind_2).RWYCode, (short) (Short.parseShort(AD_list.get(ind_2).RWYCode) * 10),
-                        AD_list.get(ind_2).ADLon, AD_list.get(ind_2).ADLat, AD_list.get(ind_2).ADElevation);
-                FLP_list.add(FLP_temp);
-                i++;
+            if(AD_list.get(ind_1).ICAOCodeID.equals("ZSSS") || AD_list.get(ind_1).ICAOCodeID.equals("ZGGG")
+                    || AD_list.get(ind_1).ICAOCodeID.equals("ZBAA")){
+            }
+            else{
+                double temp_dis = distance(AD_list.get(ind_1).ADLat, AD_list.get(ind_2).ADLat, AD_list.get(ind_1).ADLon, AD_list.get(ind_2).ADLon);
+                if (temp_dis >= 400){
+                    FLP_temp.FltNo = company[getRandomNumberInRange(0,company.length - 1)] + getRandomNumberInRange(1000, 9999);
+                    FLP_temp.DepAD = AD_list.get(ind_1).ICAOCodeID;
+                    FLP_temp.ArrAD = AD_list.get(ind_2).ICAOCodeID;
+                    FLP_temp.ACRigNum = "B" + (i + 1);
+                    String type = APLType[getRandomNumberInRange(0, APLType.length - 1)];
+                    FLP_temp.type = type;
+                    List temp_list = APL_ref.get(type);
+                    FLP_temp.ACType = (String) temp_list.get(getRandomNumberInRange(0, temp_list.size() - 1));
+                    FLP_temp.CruAlt = (short) (initial_Alt[getRandomNumberInRange(0, 1)] + 300 * getRandomNumberInRange(0, 4));
+                    FLP_temp.CruIAS = (short) (400 + 10 * getRandomNumberInRange(0, 10));
+                    FLP_temp.RWYInfo = HLARWYSturct.create(AD_list.get(ind_1).RWYCode, (short) (Short.parseShort(AD_list.get(ind_1).RWYCode) * 10),
+                            AD_list.get(ind_1).ADLon, AD_list.get(ind_1).ADLat, AD_list.get(ind_1).ADElevation);
+                    FLP_temp.ArrRWYInfo = HLARWYSturct.create(AD_list.get(ind_2).RWYCode, (short) (Short.parseShort(AD_list.get(ind_2).RWYCode) * 10),
+                            AD_list.get(ind_2).ADLon, AD_list.get(ind_2).ADLat, AD_list.get(ind_2).ADElevation);
+                    FLP_list.add(FLP_temp);
+                    i++;
+                }
             }
         }
         while (i < num);
         return FLP_list;
     }
 
+    public static void setColumnColor(JTable table, Object[][] tablevalue) {
+        try
+        {
+            DefaultTableCellRenderer tcr = new DefaultTableCellRenderer(){
+                private static final long serialVersionUID = 1L;
+                public Component getTableCellRendererComponent(JTable table,Object value, boolean isSelected, boolean hasFocus,int row, int column){
+                    if(tablevalue[row][3]!=null){
+                        if(tablevalue[row][3].equals("待放行"))
+                            setBackground(Color.lightGray);//设置偶数行底色
+                        else
+                            setBackground(Color.green);//设置奇数行底色
+                    }
+                    return super.getTableCellRendererComponent(table, value,isSelected, hasFocus, row, column);
+                }
+            };
+            for(int i = 0; i < table.getColumnCount(); i++) {
+                table.getColumn(table.getColumnName(i)).setCellRenderer(tcr);
+            }
+            tcr.setHorizontalAlignment(JLabel.CENTER);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public static void placeComponents(JPanel panel) {
         panel.setLayout(null);
+        JTable table_ZSSS = new JTable() {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        JTable table_ZGGG = new JTable() {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        JTable table_ZBAA = new JTable() {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        DefaultTableModel model_ZSSS = new DefaultTableModel(tableValues_ZSSS, columnNames);
+        DefaultTableModel model_ZGGG = new DefaultTableModel(tableValues_ZGGG, columnNames);
+        DefaultTableModel model_ZBAA = new DefaultTableModel(tableValues_ZBAA, columnNames);
+
+
+        table_ZSSS.setModel(model_ZSSS);
+        table_ZGGG.setModel(model_ZGGG);
+        table_ZBAA.setModel(model_ZBAA);
+
+
+        Timer timer = new Timer(50,new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                table_ZBAA.setModel(new DefaultTableModel(tableValues_ZBAA, columnNames));
+                table_ZSSS.setModel(new DefaultTableModel(tableValues_ZSSS, columnNames));
+                table_ZGGG.setModel(new DefaultTableModel(tableValues_ZGGG, columnNames));
+                setColumnColor(table_ZSSS, tableValues_ZSSS);
+                setColumnColor(table_ZBAA, tableValues_ZBAA);
+                setColumnColor(table_ZGGG, tableValues_ZGGG);
+            }
+        });
+        timer.start();
+
+        table_ZSSS.setPreferredScrollableViewportSize(new Dimension(500, 200));
+        table_ZSSS.setRowHeight(33);
+        table_ZSSS.setFont(new Font(Font.DIALOG,Font.PLAIN,14));
+        table_ZSSS.getTableHeader().setFont(new Font("宋体",Font.BOLD,14));
+        table_ZSSS.getTableHeader().setPreferredSize(new Dimension(1,30));
+        //居中对齐
+        DefaultTableCellRenderer r = new DefaultTableCellRenderer();
+        r.setHorizontalAlignment(JLabel.CENTER);
+        table_ZSSS.setDefaultRenderer(Object.class, r);
+
+        //放入滚动条
+        JScrollPane scrollPane = new JScrollPane(table_ZSSS);
+        scrollPane.setBounds(550, 40, 500,200);   // 表格位置
+        panel.add(scrollPane);
+
+        JLabel label_ZSSS = new JLabel("上海虹桥");
+        label_ZSSS.setFont(new Font("宋体",Font.BOLD,16));
+        label_ZSSS.setBounds(670,5,80,35);
+        panel.add(label_ZSSS);
+
+        table_ZGGG.setPreferredScrollableViewportSize(new Dimension(500, 200));
+        table_ZGGG.setRowHeight(33);
+        table_ZGGG.setFont(new Font(Font.DIALOG,Font.PLAIN,14));
+        table_ZGGG.getTableHeader().setFont(new Font("宋体",Font.BOLD,14));
+        table_ZGGG.getTableHeader().setPreferredSize(new Dimension(1,30));
+        //居中对齐
+        DefaultTableCellRenderer r_ZGGG = new DefaultTableCellRenderer();
+        r_ZGGG.setHorizontalAlignment(JLabel.CENTER);
+        table_ZGGG.setDefaultRenderer(Object.class, r_ZGGG);
+
+        //放入滚动条
+        JScrollPane scrollPane_ZGGG = new JScrollPane(table_ZGGG);
+        scrollPane_ZGGG.setBounds(550, 40+250, 500,200);   // 表格位置
+        panel.add(scrollPane_ZGGG);
+
+        JLabel label_ZGGG = new JLabel("广州白云");
+        label_ZGGG.setFont(new Font("宋体",Font.BOLD,16));
+        label_ZGGG.setBounds(670,5+250,80,35);
+        panel.add(label_ZGGG);
+
+        table_ZBAA.setPreferredScrollableViewportSize(new Dimension(500, 200));
+        table_ZBAA.setRowHeight(33);
+        table_ZBAA.setFont(new Font(Font.DIALOG,Font.PLAIN,14));
+        table_ZBAA.getTableHeader().setFont(new Font("宋体",Font.BOLD,14));
+        table_ZBAA.getTableHeader().setPreferredSize(new Dimension(1,30));
+        //居中对齐
+        DefaultTableCellRenderer r_ZBAA = new DefaultTableCellRenderer();
+        r_ZBAA.setHorizontalAlignment(JLabel.CENTER);
+        table_ZBAA.setDefaultRenderer(Object.class, r_ZBAA);
+
+        //放入滚动条
+        JScrollPane scrollPane_ZBAA = new JScrollPane(table_ZBAA);
+        scrollPane_ZBAA.setBounds(550, 40+500, 500,200);   // 表格位置
+        panel.add(scrollPane_ZBAA);
+
+        JLabel label_ZBAA = new JLabel("首都机场");
+        label_ZBAA.setFont(new Font("宋体",Font.BOLD,16));
+        label_ZBAA.setBounds(670,5+500,80,35);
+        panel.add(label_ZBAA);
+
 
         JLabel label1_1 = new JLabel("飞行计划:");
         label1_1.setFont(new Font("宋体",Font.BOLD,18));
-        label1_1.setBounds(50,20,150,35);
+        label1_1.setBounds(50,20+250,150,35);
         panel.add(label1_1);
 
         JTextField text1_1 = new JTextField();
-        text1_1.setBounds(190, 20, 120,35);
+        text1_1.setBounds(190, 20+250, 120,35);
         text1_1.setFont(new Font("宋体",Font.PLAIN,18));
         panel.add(text1_1);
 
         JLabel label1_2 = new JLabel("条");
         label1_2.setFont(new Font("宋体",Font.BOLD,18));
-        label1_2.setBounds(320,20,80,35);
+        label1_2.setBounds(320,20+250,80,35);
         panel.add(label1_2);
 
         JButton button1_1 = new JButton("生成");
         button1_1.setFont(new Font("宋体",Font.BOLD,14));
-        button1_1.setBounds(410, 20, 70,35);
+        button1_1.setBounds(410, 20+250, 70,35);
         panel.add(button1_1);
         button1_1.addActionListener(new ActionListener() { // 添加
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(text1_1.getText().length() > 0){
-                    JOptionPane.showMessageDialog(panel, "生成飞行计划成功！", "提示", JOptionPane.PLAIN_MESSAGE);
                     try {
 //                        System.out.println(Integer.parseInt(text1_1.getText()));
                         FLP_list = generateFLPInfo(Integer.parseInt(text1_1.getText()));
                         System.out.println("生成飞行计划" + FLP_list.size() + "条");
+                        for(FLPStruct flp: FLP_list){
+                            for(ADStruct ad: main.AD_set){
+                                if (flp.DepAD.equals(ad.ICAOCodeID)){
+                                    ad.FLPque.offer(flp);
+                                    break;
+                                }
+                            }
+                        }
+                        System.out.println("计划配对机场完成！");
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
+                    JOptionPane.showMessageDialog(panel, "生成飞行计划成功！", "提示", JOptionPane.PLAIN_MESSAGE);
                     button1_1.setEnabled(false);
                     text1_1.setEnabled(false);
                 }
@@ -146,49 +354,117 @@ public class TerminalManageDisplay {
                 }
             }
         });
+
+        JLabel label3_1 = new JLabel("机场:");
+        label3_1.setFont(new Font("宋体",Font.BOLD,18));
+        label3_1.setBounds(50,60+250,150,35);
+        panel.add(label3_1);
+
+        JTextField text3_1 = new JTextField();
+        text3_1.setBounds(190, 60+250, 120,35);
+        text3_1.setFont(new Font("宋体",Font.PLAIN,18));
+        panel.add(text3_1);
+
+        JLabel label3_2 = new JLabel();
+        label3_2.setFont(new Font("宋体",Font.BOLD,18));
+        label3_2.setBounds(320,60+250,80,35);
+        panel.add(label3_2);
+
 
         JLabel label2_1 = new JLabel("放行间隔:");
         label2_1.setFont(new Font("宋体",Font.BOLD,18));
-        label2_1.setBounds(50,60,150,35);
+        label2_1.setBounds(50,100+250,150,35);
         panel.add(label2_1);
 
         JTextField text2_1 = new JTextField();
-        text2_1.setBounds(190, 60, 120,35);
+        text2_1.setBounds(190, 100+250, 120,35);
         text2_1.setFont(new Font("宋体",Font.PLAIN,18));
         panel.add(text2_1);
 
-        JLabel label2_2 = new JLabel("秒");
-        label2_2.setFont(new Font("宋体",Font.BOLD,18));
-        label2_2.setBounds(320,60,80,35);
-        panel.add(label2_2);
-
-        JButton button2_1 = new JButton("执行");
-        button2_1.setFont(new Font("宋体",Font.BOLD,14));
-        button2_1.setBounds(410, 60, 70,35);
-        panel.add(button2_1);
-        button2_1.addActionListener(new ActionListener() { // 添加
+        JButton button3_1 = new JButton("选择");
+        button3_1.setFont(new Font("宋体",Font.BOLD,14));
+        button3_1.setBounds(410, 60+250, 70,35);
+        panel.add(button3_1);
+        button3_1.addActionListener(new ActionListener() { // 添加
             @Override
             public void actionPerformed(ActionEvent e) {
-                if((text2_1.getText().length() > 0) && !(button1_1.isEnabled())){
-                    JOptionPane.showMessageDialog(panel, "设置放行间隔成功！", "提示", JOptionPane.PLAIN_MESSAGE);
-                    //                        System.out.println(Integer.parseInt(text1_1.getText()));
-                    ind_start = true;
-//                        System.out.println(FLP_list.size());
-                    button1_1.setEnabled(false);
-                    text1_1.setEnabled(false);
-                    delta_time = Integer.parseInt(text2_1.getText());
-                    System.out.println("执行放行间隔：" + delta_time + "秒");
+                if(text3_1.getText().length() > 0){
+                    int ind = 0;
+//                    JOptionPane.showMessageDialog(panel,  text3_1.getText() + "放行间隔设置为" + text2_1.getText() + "秒", "提示", JOptionPane.PLAIN_MESSAGE);
+                    for(ADStruct ad: main.AD_set){
+                        if(ad.ICAOCodeID.equals(text3_1.getText())){
+                            label3_2.setText(ad.time_interval + "秒");
+                            ind = 1;
+                            break;
+                        }
+                    }
+                    if(ind==0){
+                        JOptionPane.showMessageDialog(panel,  "无该机场", "提示",JOptionPane.PLAIN_MESSAGE);
+                    }
+                    else if (ind == 1){
+                        JOptionPane.showMessageDialog(panel,  "选择成功！", "提示",JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
                 else{
                     JOptionPane.showMessageDialog(panel, "请输入！", "提示", JOptionPane.PLAIN_MESSAGE);
                 }
             }
         });
+
+        JLabel label2_2 = new JLabel("秒");
+        label2_2.setFont(new Font("宋体",Font.BOLD,18));
+        label2_2.setBounds(320,100+250,80,35);
+        panel.add(label2_2);
+
+        JButton button5_1 = new JButton("设置");
+        button5_1.setFont(new Font("宋体",Font.BOLD,14));
+        button5_1.setBounds(410, 100+250, 70,35);
+        panel.add(button5_1);
+        button5_1.addActionListener(new ActionListener() { // 添加
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(text2_1.getText().length() > 0){
+                    JOptionPane.showMessageDialog(panel,  text3_1.getText() + "放行间隔设置为" + text2_1.getText() + "秒", "提示", JOptionPane.PLAIN_MESSAGE);
+                    for(ADStruct ad: main.AD_set){
+                        if(ad.ICAOCodeID.equals(text3_1.getText())){
+                            ad.time_interval = Integer.parseInt(text2_1.getText());
+                            label3_2.setText(ad.time_interval + "秒");
+                            break;
+                        }
+                    }
+                }
+                else{
+                    JOptionPane.showMessageDialog(panel, "请输入！", "提示", JOptionPane.PLAIN_MESSAGE);
+                }
+            }
+        });
+
+        JButton button4_1 = new JButton("执行");
+        button4_1.setFont(new Font("宋体",Font.BOLD,14));
+        button4_1.setBounds(190, 140+250, 70,35);
+        panel.add(button4_1);
+        button4_1.addActionListener(new ActionListener() { // 添加
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!button1_1.isEnabled()){
+                    JOptionPane.showMessageDialog(panel, "执行成功！", "提示", JOptionPane.PLAIN_MESSAGE);
+                    ind_start = true;
+                }
+                else{
+                    JOptionPane.showMessageDialog(panel, "请生成飞行计划！", "提示", JOptionPane.PLAIN_MESSAGE);
+                }
+            }
+        });
+
+
+
+
+
     }
 
     public void gui() {
         JFrame jf = new JFrame("TerminalAreaManage");
-        jf.setSize(700,330);
+        jf.setSize(1300,800);
         jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel panel = new JPanel();
         jf.add(panel);

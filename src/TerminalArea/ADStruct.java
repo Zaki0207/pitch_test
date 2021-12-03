@@ -1,11 +1,27 @@
 package TerminalArea;
 
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
+
 public class ADStruct {
     String ICAOCodeID;
     double ADLon;
     double ADLat;
     double ADElevation;
     String RWYCode;
+    int time_interval;
+    long ref_time;
+    Queue<FLPStruct> FLPque = new LinkedList<FLPStruct>();
+    Stack<FLPStruct> ReleasedFLP = new Stack<FLPStruct>();
+
+    public int getTime_interval() {
+        return time_interval;
+    }
+
+    public void setTime_interval(int time_interval) {
+        this.time_interval = time_interval;
+    }
 
     public String getRWYCode() {
         return RWYCode;
