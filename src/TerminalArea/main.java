@@ -20,9 +20,9 @@ public class main {
     private final HlaPacer _hlaPacer;
     String AD_filepath = "./resources/ADinfo.csv";
 
-    String[] ZSSS = new String[]{"L", "M","H","S","S"};
-    String[] ZGGG = new String[]{"M", "S","S","H","L"};
-    String[] ZBAA = new String[]{"S", "L","S","M","L"};
+    String[] ZSSS = new String[]{"S", "L","S","L","S"};
+    String[] ZGGG = new String[]{"M", "S","S","H","S"};
+    String[] ZBAA = new String[]{"L", "H","S","S","H"};
 
     static long ref_start_time;
     static long ref_end_time = 0;
@@ -392,7 +392,7 @@ public class main {
                                 plan_count++;
                                 System.out.println("当前机场已执行计划:" + ad.ReleasedFLP.size() + ", 剩余计划:" + ad.FLPque.size());
                                 System.out.println("首发！按放行间隔" + ad.time_interval + "秒执行放行。\n 已执行计划："
-                                        + plan_count + ", 未执行计划: " + (TerminalManageDisplay.FLP_list.size()-plan_count));
+                                        + plan_count + ", 未执行计划: " + Math.max(0, (TerminalManageDisplay.FLP_list.size()-plan_count)));
                             }
                         }
                     }
@@ -425,7 +425,8 @@ public class main {
                         }
                         FLPStruct temp_FLP = ad.FLPque.peek();
                         String WL_ind = temp_FLP.type + "-" + ad.ReleasedFLP.peek().type;
-                        int time_interval = Math.max(TerminalManageDisplay.WTC_ref.get(WL_ind) * 60, ad.time_interval);
+                        int time_interval = Math.max(TerminalManageDisplay.WTC_ref.get(WL_ind) * 60 +
+                                TerminalManageDisplay.getRandomNumberInRange(0,20), ad.time_interval);
                         if((ref_end_time - ad.ref_time) >= time_interval){ // 可以放行
                             if (temp_FLP != null){
                                 ad.FLPque.poll();
@@ -455,7 +456,7 @@ public class main {
                                 plan_count++;
                                 System.out.println("当前机场已执行计划:" + ad.ReleasedFLP.size() + ", 剩余计划:" + ad.FLPque.size());
                                 System.out.println("次发！按放行间隔" + Math.max(TerminalManageDisplay.WTC_ref.get(WL_ind) * 60, ad.time_interval)
-                                        + "秒执行放行。\n 已执行计划：" + plan_count + ", 未执行计划: " + (TerminalManageDisplay.FLP_list.size()-plan_count));
+                                        + "秒执行放行。\n 已执行计划：" + plan_count + ", 未执行计划: " + Math.max(0, TerminalManageDisplay.FLP_list.size()-plan_count));
                             }
                         }
                     }

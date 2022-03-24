@@ -24,7 +24,8 @@ public class TerminalManageDisplay<model_ZGGG> {
     static HashMap<String, Integer> WTC_ref = new HashMap<>();
 
     static String[] APLType = new String[]{"L", "M","H","S"};
-    static String[] company = new String[]{"MU", "CGH","SC","MF","RA"};
+    static String[] company = new String[]{"MU", "CA","SC","MF","RA","KN","ZH","CJ","CZ","HU","PN","FM","JR","3Q","3U","WU","GP","FJ",
+            "JD","HO","9C","KE","NH"};
     static ArrayList<ADStruct> AD_list;
     public static ArrayList<FLPStruct> FLP_list;
     static int[] initial_Alt = new int[]{7200, 8900};

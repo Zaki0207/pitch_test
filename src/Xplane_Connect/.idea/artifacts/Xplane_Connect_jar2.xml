@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Xplane_Connect:jar2">
+    <output-path>$PROJECT_DIR$/out/artifacts/Xplane_Connect_jar2</output-path>
+    <root id="archive" name="Xplane_Connect.jar">
+      <element id="module-output" name="Xplane_Connect" />
+    </root>
+  </artifact>
+</component>
